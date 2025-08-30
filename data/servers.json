@@ -1,0 +1,5 @@
+[
+  { "id": "medley-eu", "name": "Medley EU", "region": "eu", "ip": "52.14.22.101", "port": 7777, "multiplayerip": "52.14.22.101", "multiplayerport": 7778, "status": "online", "capacity": 5000, "currentPlayers": 1321 },
+  { "id": "colma-eu", "name": "Colma EU", "region": "eu", "ip": "52.14.22.102", "port": 7777, "multiplayerip": "52.14.22.102", "multiplayerport": 7778, "status": "online", "capacity": 5000, "currentPlayers": 981 },
+  { "id": "willow-na", "name": "Willow NA", "region": "na", "ip": "18.224.10.10", "port": 7777, "multiplayerip": "18.224.10.10", "multiplayerport": 7778, "status": "maintenance", "capacity": 4000, "currentPlayers": 0 }
+]

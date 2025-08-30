@@ -1,0 +1,5 @@
+[
+  { "id": "eu", "name": "Europe", "slug": "EU" },
+  { "id": "na", "name": "North America", "slug": "NA" },
+  { "id": "as", "name": "Asia", "slug": "AS" }
+]
