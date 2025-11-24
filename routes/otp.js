@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { auth } = require('../middleware/auth');
 const crypto = require('crypto');
-const SMTPClient = require('smtp-client');
+const { SMTPClient } = require('smtp-client');
 
 const router = express.Router();
 
