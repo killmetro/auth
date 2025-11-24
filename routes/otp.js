@@ -55,7 +55,7 @@ router.post('/send', async (req, res) => {
     const otp = generateOTP();
     
     if (user) {
-      // Existing user - update OTP
+      // Existing user - update OTP using the method
       user.setOTP(otp);
       await user.save();
     } else {
@@ -63,9 +63,10 @@ router.post('/send', async (req, res) => {
       const tempUser = new User({
         email,
         username: `temp_${Date.now()}`, // Temporary username
-        password: crypto.randomBytes(20).toString('hex'), // Random password
-        otp: otp
+        password: crypto.randomBytes(20).toString('hex') // Random password
       });
+      
+      // Set OTP using the method
       tempUser.setOTP(otp);
       await tempUser.save();
     }
@@ -160,7 +161,7 @@ router.post('/verify', async (req, res) => {
       if (!username) {
         // Just verifying OTP for new user, not creating account yet
         // Find the temporary user with this email and OTP
-        const tempUser = await User.findOne({ email, otp: otp });
+        const tempUser = await User.findOne({ email });
         if (!tempUser || !tempUser.verifyOTP(otp)) {
           return res.status(400).json({
             error: 'Invalid OTP',
@@ -176,7 +177,7 @@ router.post('/verify', async (req, res) => {
       } else {
         // Creating new user with username
         // First verify OTP by finding the temporary user
-        const tempUser = await User.findOne({ email, otp: otp });
+        const tempUser = await User.findOne({ email });
         if (!tempUser || !tempUser.verifyOTP(otp)) {
           return res.status(400).json({
             error: 'Invalid OTP',
