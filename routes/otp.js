@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { auth } = require('../middleware/auth');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+const SMTPClient = require('smtp-client');
 
 const router = express.Router();
 
@@ -12,35 +12,46 @@ const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Create transporter for nodemailer (configured via environment variables)
-const createTransporter = () => {
-  // Check if we have SMTP configuration
+// Send email using SMTP client
+const sendEmailViaSMTP = async (to, subject, text) => {
+  // Check if SMTP configuration exists
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    // Return a mock transporter that logs to console if no SMTP config
-    return {
-      sendMail: async (options) => {
-        console.log('EMAIL DEBUG (No SMTP config):');
-        console.log('To:', options.to);
-        console.log('Subject:', options.subject);
-        console.log('Body:', options.text);
-        return Promise.resolve({ messageId: 'mock-message-id' });
-      }
-    };
+    throw new Error('SMTP configuration missing');
   }
-  
-  // Create real transporter with SMTP config
-  return nodemailer.createTransport({
+
+  const client = new SMTPClient({
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
-    },
-    tls: {
-      rejectUnauthorized: false // Accept self-signed certificates
-    }
+    secure: process.env.SMTP_SECURE === 'true'
   });
+
+  try {
+    await client.connect();
+    
+    if (process.env.SMTP_SECURE !== 'true') {
+      await client.greet({hostname: 'localhost'}); // SMTP greeting
+      await client.authPlain({
+        username: process.env.SMTP_USER,
+        password: process.env.SMTP_PASS
+      });
+    } else {
+      await client.authLogin({
+        username: process.env.SMTP_USER,
+        password: process.env.SMTP_PASS
+      });
+    }
+
+    await client.mail({from: process.env.SMTP_FROM || process.env.SMTP_USER});
+    await client.rcpt({to: to});
+    
+    await client.data(text);
+    await client.quit();
+    
+    return { success: true };
+  } catch (error) {
+    await client.quit().catch(() => {}); // Ignore quit errors
+    throw error;
+  }
 };
 
 // @route   POST /api/otp/send
@@ -92,25 +103,27 @@ router.post('/send', async (req, res) => {
     
     // Send OTP via email using SMTP
     try {
-      const transporter = createTransporter();
-      
-      const mailOptions = {
-        from: process.env.SMTP_FROM || process.env.SMTP_USER,
-        to: email,
-        subject: 'Your Login OTP Code',
-        text: `Your OTP code is: ${otp}
+      const emailResult = await sendEmailViaSMTP(
+        email,
+        'Your Login OTP Code',
+        `Your OTP code is: ${otp}
 
 This code will expire in 10 minutes.
 
 If you didn't request this code, please ignore this email.`
-      };
+      );
       
-      await transporter.sendMail(mailOptions);
-      
-      res.json({
-        message: 'OTP sent to your email',
-        isNewUser: !user
-      });
+      if (emailResult.success) {
+        res.json({
+          message: 'OTP sent to your email',
+          isNewUser: !user
+        });
+      } else {
+        res.status(500).json({
+          error: 'Failed to send OTP',
+          message: 'Unable to send OTP to your email. Please try again.'
+        });
+      }
     } catch (emailError) {
       console.error('Email sending error:', emailError);
       res.status(500).json({
