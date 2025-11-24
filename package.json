@@ -8,20 +8,25 @@
     "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["unity", "authentication", "game", "backend"],
+  "keywords": [
+    "unity",
+    "authentication",
+    "game",
+    "backend"
+  ],
   "author": "Your Name",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
+    "axios": "^1.5.0",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^7.5.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.10.0",
     "express-validator": "^7.0.1",
     "helmet": "^7.0.0",
-    "express-rate-limit": "^6.10.0",
-    "axios": "^1.5.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.5.0",
     "smtp-client": "^0.4.0"
   },
   "devDependencies": {
