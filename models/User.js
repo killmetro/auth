@@ -21,7 +21,8 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
+    // Make password optional for OTP users
+    required: false,
     minlength: [6, 'Password must be at least 6 characters long']
   },
   // OTP fields for the new authentication system
@@ -54,9 +55,10 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Hash password before saving
+// Hash password before saving (only if password is provided)
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
+  // Only hash password if it exists and has been modified
+  if (!this.isModified('password') || !this.password) return next();
   
   try {
     const salt = await bcrypt.genSalt(parseInt(process.env.BCRYPT_ROUNDS) || 12);
@@ -67,8 +69,10 @@ userSchema.pre('save', async function(next) {
   }
 });
 
-// Method to compare password
+// Method to compare password (only if password exists)
 userSchema.methods.comparePassword = async function(candidatePassword) {
+  // If no password is set, return false
+  if (!this.password) return false;
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
