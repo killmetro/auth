@@ -22,33 +22,38 @@ const sendEmailViaSMTP = async (to, subject, text) => {
   const client = new SMTPClient({
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: process.env.SMTP_SECURE === 'true'
+    secure: process.env.SMTP_SECURE === 'true',
+    ignoreTLS: process.env.SMTP_SECURE === 'true' ? false : true
   });
 
   try {
     await client.connect();
     
-    if (process.env.SMTP_SECURE !== 'true') {
-      await client.greet({hostname: 'localhost'}); // SMTP greeting
-      await client.authPlain({
-        username: process.env.SMTP_USER,
-        password: process.env.SMTP_PASS
-      });
-    } else {
-      await client.authLogin({
-        username: process.env.SMTP_USER,
-        password: process.env.SMTP_PASS
-      });
-    }
+    // Always greet first
+    await client.greet({hostname: 'localhost'});
+    
+    // Authenticate
+    await client.authPlain({
+      username: process.env.SMTP_USER,
+      password: process.env.SMTP_PASS
+    });
 
+    // Send email
     await client.mail({from: process.env.SMTP_FROM || process.env.SMTP_USER});
     await client.rcpt({to: to});
     
-    await client.data(text);
+    // Format the email content properly
+    const emailContent = `From: ${process.env.SMTP_FROM || process.env.SMTP_USER}\r
+To: ${to}\r
+Subject: ${subject}\r
+\r
+${text}`;
+    await client.data(emailContent);
     await client.quit();
     
     return { success: true };
   } catch (error) {
+    console.error('SMTP Error Details:', error);
     await client.quit().catch(() => {}); // Ignore quit errors
     throw error;
   }
