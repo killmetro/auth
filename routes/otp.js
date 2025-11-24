@@ -14,6 +14,21 @@ const generateOTP = () => {
 
 // Create transporter for nodemailer (configured via environment variables)
 const createTransporter = () => {
+  // Check if we have SMTP configuration
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    // Return a mock transporter that logs to console if no SMTP config
+    return {
+      sendMail: async (options) => {
+        console.log('EMAIL DEBUG (No SMTP config):');
+        console.log('To:', options.to);
+        console.log('Subject:', options.subject);
+        console.log('Body:', options.text);
+        return Promise.resolve({ messageId: 'mock-message-id' });
+      }
+    };
+  }
+  
+  // Create real transporter with SMTP config
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT) || 587,
@@ -21,6 +36,9 @@ const createTransporter = () => {
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS
+    },
+    tls: {
+      rejectUnauthorized: false // Accept self-signed certificates
     }
   });
 };
