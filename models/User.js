@@ -24,6 +24,15 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Password is required'],
     minlength: [6, 'Password must be at least 6 characters long']
   },
+  // OTP fields for the new authentication system
+  otp: {
+    type: String,
+    default: null
+  },
+  otpExpiry: {
+    type: Date,
+    default: null
+  },
   isActive: {
     type: Boolean,
     default: true
@@ -67,7 +76,28 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 userSchema.methods.getPublicProfile = function() {
   const userObject = this.toObject();
   delete userObject.password;
+  delete userObject.otp;
+  delete userObject.otpExpiry;
   return userObject;
+};
+
+// Method to set OTP
+userSchema.methods.setOTP = function(otp, expiryMinutes = 10) {
+  this.otp = otp;
+  this.otpExpiry = new Date(Date.now() + expiryMinutes * 60 * 1000);
+};
+
+// Method to verify OTP
+userSchema.methods.verifyOTP = function(enteredOtp) {
+  if (!this.otp || !this.otpExpiry) return false;
+  if (this.otpExpiry < new Date()) return false; // OTP expired
+  return this.otp === enteredOtp;
+};
+
+// Method to clear OTP after use
+userSchema.methods.clearOTP = function() {
+  this.otp = null;
+  this.otpExpiry = null;
 };
 
 // Index for better query performance

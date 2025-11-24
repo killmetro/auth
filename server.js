@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const regionsRoutes = require('./routes/regions');
 const serversRoutes = require('./routes/servers');
+const otpRoutes = require('./routes/otp');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -46,6 +47,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/regions', regionsRoutes);
 app.use('/api', serversRoutes);
+app.use('/api/otp', otpRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
