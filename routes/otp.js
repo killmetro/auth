@@ -60,14 +60,26 @@ router.post('/send', async (req, res) => {
       await user.save();
     } else {
       // New user - create temporary user record with OTP
+      // Generate a random password for temporary users
+      const randomPassword = crypto.randomBytes(32).toString('hex');
+      
       const tempUser = new User({
         email,
         username: `temp_${Date.now()}`, // Temporary username
-        password: crypto.randomBytes(20).toString('hex') // Random password
+        password: randomPassword // Random password
       });
       
       // Set OTP using the method
       tempUser.setOTP(otp);
+      
+      // Debug: Log the user object before saving
+      console.log('Creating temporary user with:', {
+        email: tempUser.email,
+        username: tempUser.username,
+        password: tempUser.password ? 'SET' : 'UNDEFINED',
+        passwordLength: tempUser.password ? tempUser.password.length : 0
+      });
+      
       await tempUser.save();
     }
     
