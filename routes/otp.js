@@ -7,6 +7,9 @@ const { SMTPClient } = require('smtp-client');
 
 const router = express.Router();
 
+// In-memory storage for pending OTPs (in production, use Redis or database)
+const pendingOTPs = new Map();
+
 // Generate a random 6-digit OTP
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -93,9 +96,9 @@ router.post('/send', async (req, res) => {
       user.setOTP(otp);
       await user.save();
     } else {
-      // For new users, we don't create a temporary user yet
-      // We'll store the OTP in memory or session for verification
-      // For simplicity, we'll just send the OTP and let the frontend handle the flow
+      // For new users, store OTP in memory with expiration
+      const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+      pendingOTPs.set(email, { otp, expiry: otpExpiry });
       console.log(`New user OTP for ${email}: ${otp}`);
     }
     
@@ -190,8 +193,33 @@ router.post('/verify', async (req, res) => {
       // New user - check if username is provided
       if (!username) {
         // Just verifying OTP for new user, not creating account yet
-        // For now, we'll assume the OTP is valid and indicate that username is needed
-        // In a production system, you'd want to store and verify the OTP properly
+        // Check if OTP is valid
+        const pendingOTP = pendingOTPs.get(email);
+        if (!pendingOTP) {
+          return res.status(400).json({
+            error: 'Invalid OTP',
+            message: 'No OTP found for this email. Please request a new OTP.'
+          });
+        }
+        
+        // Check if OTP is expired
+        if (pendingOTP.expiry < new Date()) {
+          pendingOTPs.delete(email);
+          return res.status(400).json({
+            error: 'OTP expired',
+            message: 'The OTP has expired. Please request a new OTP.'
+          });
+        }
+        
+        // Check if OTP matches
+        if (pendingOTP.otp !== otp) {
+          return res.status(400).json({
+            error: 'Invalid OTP',
+            message: 'The OTP you entered is invalid'
+          });
+        }
+        
+        // OTP is valid, indicate that username is needed
         return res.json({
           message: 'OTP verified',
           email: email,
@@ -199,6 +227,35 @@ router.post('/verify', async (req, res) => {
         });
       } else {
         // Creating new user with username
+        // First verify OTP
+        const pendingOTP = pendingOTPs.get(email);
+        if (!pendingOTP) {
+          return res.status(400).json({
+            error: 'Invalid OTP',
+            message: 'No OTP found for this email. Please request a new OTP.'
+          });
+        }
+        
+        // Check if OTP is expired
+        if (pendingOTP.expiry < new Date()) {
+          pendingOTPs.delete(email);
+          return res.status(400).json({
+            error: 'OTP expired',
+            message: 'The OTP has expired. Please request a new OTP.'
+          });
+        }
+        
+        // Check if OTP matches
+        if (pendingOTP.otp !== otp) {
+          return res.status(400).json({
+            error: 'Invalid OTP',
+            message: 'The OTP you entered is invalid'
+          });
+        }
+        
+        // Remove used OTP
+        pendingOTPs.delete(email);
+        
         // Check if username is already taken
         const existingUsername = await User.findOne({ username });
         if (existingUsername) {
@@ -213,10 +270,6 @@ router.post('/verify', async (req, res) => {
           email,
           username
         });
-        
-        // Set OTP and clear it immediately since it's already verified
-        newUser.setOTP(otp);
-        newUser.clearOTP();
         
         await newUser.save();
         
