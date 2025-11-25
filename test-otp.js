@@ -8,7 +8,7 @@ async function testOTPSend() {
     console.log('Testing OTP send...');
     
     const response = await axios.post(`${BASE_URL}/otp/send`, {
-      email: 'test@example.com'
+      email: 'iambroke954@gmail.com'
     });
     
     console.log('✅ OTP Send Response:', response.data);
@@ -31,7 +31,7 @@ async function testOTPVerify(otp) {
     console.log('Testing OTP verify...');
     
     const response = await axios.post(`${BASE_URL}/otp/verify`, {
-      email: 'test@example.com',
+      email: 'iambroke954@gmail.com',
       otp: otp
     });
     
