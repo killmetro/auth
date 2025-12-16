@@ -10,9 +10,7 @@ const gameServerSchema = new mongoose.Schema({
   multiplayerport: { type: Number, required: true, min: 1, max: 65535 },
   status: { type: String, enum: ['online', 'offline', 'maintenance'], default: 'offline' },
   capacity: { type: Number, default: 0, min: 0 },
-  currentPlayers: { type: Number, default: 0, min: 0 },
-  // ✅ NEW: Backend URL for API connections (optional, fallback to ip:port)
-  backendUrl: { type: String, required: false, trim: true }
+  currentPlayers: { type: Number, default: 0, min: 0 }
 }, { timestamps: true });
 
 gameServerSchema.index({ id: 1 }, { unique: true });
