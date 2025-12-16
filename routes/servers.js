@@ -17,8 +17,8 @@ function requireAdmin(req, res, next) {
 // POST /api/servers - create server (admin only)
 router.post('/servers', requireAdmin, async (req, res) => {
   try {
-    const { id, name, region, ip, port, multiplayerip, multiplayerport, status, capacity, currentPlayers } = req.body;
-    const server = await GameServer.create({ id, name, region, ip, port, multiplayerip, multiplayerport, status, capacity, currentPlayers });
+    const { id, name, region, ip, port, multiplayerip, multiplayerport, status, capacity, currentPlayers, backendUrl } = req.body;
+    const server = await GameServer.create({ id, name, region, ip, port, multiplayerip, multiplayerport, status, capacity, currentPlayers, backendUrl });
     res.status(201).json({ message: 'Server created', server });
   } catch (error) {
     if (error.code === 11000) {

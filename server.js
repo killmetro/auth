@@ -20,18 +20,19 @@ connectDB();
 // Security middleware
 app.use(helmet());
 
-// CORS configuration for Unity
+// CORS configuration for Unity - more permissive for development
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:8080', 'http://localhost:8081'],
+  origin: true, // Allow all origins in development
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-api-key'],
+  exposedHeaders: ['Authorization']
 }));
 
-// Rate limiting
+// Rate limiting - increased for development
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500, // Increased limit for development
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -55,6 +56,22 @@ app.get('/health', (req, res) => {
     status: 'OK', 
     message: 'Unity Auth Backend is running',
     timestamp: new Date().toISOString()
+  });
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Unity Auth Backend Server',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      user: '/api/user',
+      regions: '/api/regions',
+      servers: '/api/servers',
+      otp: '/api/otp',
+      health: '/health'
+    }
   });
 });
 
