@@ -20,19 +20,19 @@ connectDB();
 // Security middleware
 app.use(helmet());
 
-// CORS configuration for Unity - more permissive for development
+// CORS configuration for Unity - compatible with old setup but more flexible
 app.use(cors({
-  origin: true, // Allow all origins in development
+  origin: ['http://localhost:3000', 'http://localhost:8080', 'http://localhost:8081', 'https://auth-jb9j.onrender.com'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-api-key'],
   exposedHeaders: ['Authorization']
 }));
 
-// Rate limiting - increased for development
+// Rate limiting - back to original limits
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500, // Increased limit for development
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
