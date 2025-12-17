@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
+// Removed rateLimit import
 require('dotenv').config();
 
 const connectDB = require('./config/database');
@@ -29,15 +29,7 @@ app.use(cors({
   exposedHeaders: ['Authorization']
 }));
 
-// Rate limiting - increased for development
-const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500, // Increased limit for development
-  message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use(limiter);
+// Removed rate limiting middleware
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
