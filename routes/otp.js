@@ -26,15 +26,15 @@ const sendEmailViaSMTP = async (to, subject, text) => {
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT) || 587,
     secure: process.env.SMTP_SECURE === 'true',
-    ignoreTLS: process.env.SMTP_SECURE === 'true' ? false : true
+    ignoreTLS: false
   });
 
   try {
     await client.connect();
-    
+
     // Always greet first
-    await client.greet({hostname: 'localhost'});
-    
+    await client.greet({ hostname: 'localhost' });
+
     // Authenticate
     await client.authPlain({
       username: process.env.SMTP_USER,
@@ -42,9 +42,9 @@ const sendEmailViaSMTP = async (to, subject, text) => {
     });
 
     // Send email
-    await client.mail({from: process.env.SMTP_FROM || process.env.SMTP_USER});
-    await client.rcpt({to: to});
-    
+    await client.mail({ from: process.env.SMTP_FROM || process.env.SMTP_USER });
+    await client.rcpt({ to: to });
+
     // Format the email content properly
     const emailContent = `From: ${process.env.SMTP_FROM || process.env.SMTP_USER}\r
 To: ${to}\r
@@ -53,11 +53,11 @@ Subject: ${subject}\r
 ${text}`;
     await client.data(emailContent);
     await client.quit();
-    
+
     return { success: true };
   } catch (error) {
     console.error('SMTP Error Details:', error);
-    await client.quit().catch(() => {}); // Ignore quit errors
+    await client.quit().catch(() => { }); // Ignore quit errors
     throw error;
   }
 };
@@ -87,10 +87,10 @@ router.post('/send', async (req, res) => {
 
     // Find user by email
     const user = await User.findOne({ email });
-    
+
     // Generate OTP
     const otp = generateOTP();
-    
+
     if (user) {
       // Existing user - update OTP using the method
       user.setOTP(otp);
@@ -101,7 +101,7 @@ router.post('/send', async (req, res) => {
       pendingOTPs.set(email, { otp, expiry: otpExpiry });
       console.log(`New user OTP for ${email}: ${otp}`);
     }
-    
+
     // Send OTP via email using SMTP
     try {
       const emailResult = await sendEmailViaSMTP(
@@ -113,7 +113,7 @@ This code will expire in 10 minutes.
 
 If you didn't request this code, please ignore this email.`
       );
-      
+
       if (emailResult.success) {
         res.json({
           message: 'OTP sent to your email',
@@ -157,7 +157,7 @@ router.post('/verify', async (req, res) => {
 
     // Find user by email
     let user = await User.findOne({ email });
-    
+
     if (user) {
       // Existing user - verify OTP
       if (!user.verifyOTP(otp)) {
@@ -166,22 +166,22 @@ router.post('/verify', async (req, res) => {
           message: 'The OTP you entered is invalid or has expired'
         });
       }
-      
+
       // Clear OTP after successful verification
       user.clearOTP();
-      
+
       // Generate token
       const token = jwt.sign(
         { userId: user._id },
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
       );
-      
+
       // Update user stats
       user.lastLogin = new Date();
       user.loginCount += 1;
       await user.save();
-      
+
       res.json({
         message: 'Login successful',
         user: user.getPublicProfile(),
@@ -201,7 +201,7 @@ router.post('/verify', async (req, res) => {
             message: 'No OTP found for this email. Please request a new OTP.'
           });
         }
-        
+
         // Check if OTP is expired
         if (pendingOTP.expiry < new Date()) {
           pendingOTPs.delete(email);
@@ -210,7 +210,7 @@ router.post('/verify', async (req, res) => {
             message: 'The OTP has expired. Please request a new OTP.'
           });
         }
-        
+
         // Check if OTP matches
         if (pendingOTP.otp !== otp) {
           return res.status(400).json({
@@ -218,7 +218,7 @@ router.post('/verify', async (req, res) => {
             message: 'The OTP you entered is invalid'
           });
         }
-        
+
         // OTP is valid, indicate that username is needed
         return res.json({
           message: 'OTP verified',
@@ -235,7 +235,7 @@ router.post('/verify', async (req, res) => {
             message: 'No OTP found for this email. Please request a new OTP.'
           });
         }
-        
+
         // Check if OTP is expired
         if (pendingOTP.expiry < new Date()) {
           pendingOTPs.delete(email);
@@ -244,7 +244,7 @@ router.post('/verify', async (req, res) => {
             message: 'The OTP has expired. Please request a new OTP.'
           });
         }
-        
+
         // Check if OTP matches
         if (pendingOTP.otp !== otp) {
           return res.status(400).json({
@@ -252,10 +252,10 @@ router.post('/verify', async (req, res) => {
             message: 'The OTP you entered is invalid'
           });
         }
-        
+
         // Remove used OTP
         pendingOTPs.delete(email);
-        
+
         // Check if username is already taken
         const existingUsername = await User.findOne({ username });
         if (existingUsername) {
@@ -264,27 +264,27 @@ router.post('/verify', async (req, res) => {
             message: 'This username is already in use'
           });
         }
-        
+
         // Create new user
         const newUser = new User({
           email,
           username
         });
-        
+
         await newUser.save();
-        
+
         // Generate token
         const token = jwt.sign(
           { userId: newUser._id },
           process.env.JWT_SECRET,
           { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
         );
-      
+
         // Update user stats
         newUser.lastLogin = new Date();
         newUser.loginCount = 1;
         await newUser.save();
-        
+
         res.status(201).json({
           message: 'User registered successfully',
           user: newUser.getPublicProfile(),

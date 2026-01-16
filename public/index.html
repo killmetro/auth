@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>METROSTATE // SECURE NEURAL LINK</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <script>
+        // CRITICAL: Prevent flash by checking session before body renders
+        if (sessionStorage.getItem('intro_shown')) {
+            document.write('<style>#loading-screen { display: none !important; } #app { opacity: 1 !important; }</style>');
+        }
+    </script>
+</head>
+
+<body>
+    <div class="scanline"></div>
+
+    <!-- INTRO LOADING SCREEN -->
+    <div id="loading-screen">
+        <div class="loader-logo">
+            <div class="loader-shield">M</div>
+            <div class="loader-text">METROSTATE</div>
+        </div>
+        <div class="loader-progress-container">
+            <div class="loader-progress-bar" id="loader-bar"></div>
+        </div>
+        <div class="loader-dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
+
+    <div id="app" class="flex-center min-h-screen opacity-0" style="transition: opacity 1s;">
+        <!-- AUTH GATE -->
+        <main id="auth-container" class="auth-wrapper animate-fade-in">
+            <div class="flex-col items-center text-center">
+                <div class="status-hex flex-center">
+                    <div id="auth-icon">
+                        <svg id="icon-mail" xmlns="http://www.w3.org/2000/svg" width="32" height="32"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <rect width="20" height="16" x="2" y="4" rx="2" />
+                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                        </svg>
+                        <svg id="icon-key" class="hidden" xmlns="http://www.w3.org/2000/svg" width="32" height="32"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4" />
+                            <path d="m21 2-9.6 9.6" />
+                            <circle cx="7.5" cy="15.5" r="5.5" />
+                        </svg>
+                        <svg id="icon-user" class="hidden" xmlns="http://www.w3.org/2000/svg" width="32" height="32"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <line x1="19" x2="19" y1="8" y2="14" />
+                            <line x1="16" x2="22" y1="11" y2="11" />
+                        </svg>
+                    </div>
+                    <div class="corner-tag">V3.0</div>
+                </div>
+                <h1>METROSTATE</h1>
+                <p id="auth-status-text" class="status-label">Please Log In</p>
+            </div>
+
+            <div id="error-box" class="hidden cyber-alert">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="3">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                    <path d="M12 9v4" />
+                    <path d="M12 17h.01" />
+                </svg>
+                <span id="error-message"></span>
+            </div>
+
+            <!-- EMAIL PHASE -->
+            <form id="email-form" class="flex-col" style="margin-top: 2rem;">
+                <div class="field-group">
+                    <label class="field-label">Email Address</label>
+                    <input type="email" id="email-input" class="cyber-input" placeholder="name@example.com" required
+                        autofocus>
+                </div>
+                <button type="submit" class="btn-action"><span>SEND LOGIN CODE</span></button>
+            </form>
+
+            <!-- OTP PHASE -->
+            <form id="otp-form" class="hidden flex-col" style="margin-top: 2rem;">
+                <div class="field-group">
+                    <label class="field-label">Verification Code</label>
+                    <input type="text" id="otp-input" class="cyber-input" placeholder="123456" maxlength="6" required>
+                    <p id="otp-sent-to" class="status-label" style="margin-top: 1rem; font-size: 0.5rem; opacity: 0.4;">
+                    </p>
+                </div>
+                <div class="flex-col" style="gap: 1rem;">
+                    <button type="submit" class="btn-action"><span>VERIFY CODE</span></button>
+                    <button type="button" class="back-link">Back to Login</button>
+                </div>
+            </form>
+
+            <!-- REGISTRATION PHASE -->
+            <form id="username-form" class="hidden flex-col" style="margin-top: 2rem;">
+                <div class="field-group">
+                    <label class="field-label">Choose Username</label>
+                    <input type="text" id="username-input" class="cyber-input" placeholder="Username" required>
+                    <p class="status-label" style="margin-top: 1rem; color: var(--accent-primary);">Create your account
+                    </p>
+                </div>
+                <div class="flex-col" style="gap: 1rem;">
+                    <button type="submit" class="btn-action"><span>CREATE ACCOUNT</span></button>
+                    <button type="button" class="back-link">Cancel</button>
+                </div>
+            </form>
+
+            <div style="margin-top: 3rem; text-align: center;">
+                <p
+                    style="font-size: 0.5rem; font-weight: 900; letter-spacing: 0.2em; opacity: 0.2; text-transform: uppercase;">
+                    Secure Connection
+                </p>
+            </div>
+        </main>
+
+        <!-- DASHBOARD GATE (GAME LAUNCHER) -->
+        <main id="server-container" class="hidden w-full max-w-6xl animate-fade-in flex-col"
+            style="height: 100vh; padding: 0;">
+
+            <!-- TOP NAV -->
+            <nav class="launcher-nav">
+                <div class="nav-brand">
+                    <div class="nav-logo-icon">M</div>
+                    <span>METROSTATE</span>
+                </div>
+                <div class="nav-user">
+                    <span id="nav-username">OPERATIVE</span>
+                    <div class="nav-lang-select">
+                        <select id="language-selector">
+                            <option value="EN">EN</option>
+                            <option value="ES">ES</option>
+                            <option value="FR">FR</option>
+                            <option value="DE">DE</option>
+                        </select>
+                    </div>
+                    <button id="logout-btn" class="btn-text" title="Logout">
+                        <span class="logout-text">LOG OUT</span>
+                        <span class="logout-door" style="display: none;">
+                            <svg viewBox="0 0 24 24" width="22" height="22">
+                                <path fill="currentColor"
+                                    d="M14.08,15.59L16.67,13H7V11H16.67L14.08,8.41L15.5,7L20.5,12L15.5,17L14.08,15.59M19,3A2,2 0 0,1 21,5V9H19V5H5V19H19V15H21V19A2,2 0 0,1 19,21H5C3.89,21 3,20.1 3,19V5C3,3.89 3.89,3 5,3H19Z" />
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+
+                <div class="nav-links">
+                    <a href="#" class="active">CHARACTERS</a>
+                    <a href="#news">NEWS</a>
+                    <a href="#">EVENTS</a>
+                    <a href="#store">STORE</a>
+                    <a href="#" class="accent-link">FREE STUFF</a>
+                    <a href="#">PROMOCODES</a>
+                    <a href="#" id="nav-account-btn">ACCOUNT</a>
+                </div>
+            </nav>
+
+            <!-- TAB CONTENT: PLAY (DEFAULT) -->
+            <div id="view-play" class="view-section animate-fade-in">
+                <!-- SUB HEADER / CONTROLS -->
+                <div class="launcher-controls">
+                    <div class="control-group">
+                        <label>REGION</label>
+                        <div class="custom-select">
+                            <select id="region-selector">
+                                <option value="ALL">GLOBAL (ALL)</option>
+                                <!-- Populated via JS -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SERVER LIST AREA -->
+                <div class="server-list-wrapper">
+                    <div id="server-list" class="server-grid">
+                        <!-- SECTOR DATA INJECTED HERE -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB CONTENT: NEWS -->
+            <div id="view-news" class="view-section hidden animate-fade-in">
+                <div class="news-container">
+                    <!-- GRID VIEW (VISIBLE BY DEFAULT) -->
+                    <div id="news-grid-view">
+                        <div class="news-header">
+                            <h2>NEWS FEED</h2>
+                            <div class="header-line"></div>
+                        </div>
+
+                        <div class="news-grid">
+                            <!-- Featured Article -->
+                            <div class="news-card featured" onclick="showArticle('featured')">
+                                <div class="news-image">
+                                    <!-- <img src="featured-news.jpg"> placeholder -->
+                                </div>
+                                <div class="news-content">
+                                    <div class="news-meta">09.01.2026</div>
+                                    <h3 class="news-title">A NEW ERA BEGINS: METROSTATE 2026</h3>
+                                    <p class="news-desc">The city is evolving. New sectors, upgraded gear, and higher
+                                        stakes. Witness the definition of a new generation.</p>
+                                </div>
+                            </div>
+
+                            <!-- Regular Article 1 -->
+                            <div class="news-card" onclick="showArticle('season')">
+                                <div class="news-image"></div>
+                                <div class="news-content">
+                                    <div class="news-meta">18.12.2025</div>
+                                    <h3 class="news-title">SEASON'S GREETINGS</h3>
+                                    <p class="news-desc">Special winter events are now live in all sectors. Collect
+                                        limited
+                                        rewards.</p>
+                                </div>
+                            </div>
+
+                            <!-- Regular Article 2 -->
+                            <div class="news-card" onclick="showArticle('patch')">
+                                <div class="news-image"></div>
+                                <div class="news-content">
+                                    <div class="news-meta">11.12.2025</div>
+                                    <h3 class="news-title">BALANCE PATCH 2.4</h3>
+                                    <p class="news-desc">Adjustments to tactical gear and operative skills. View full
+                                        changelog.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ARTICLE DETAIL VIEW (HIDDEN BY DEFAULT) -->
+                    <div id="news-article-view" class="hidden">
+                        <button class="btn-news-back" onclick="hideArticle()">
+                            <svg viewBox="0 0 24 24" width="20" height="20">
+                                <path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+                            </svg>
+                        </button>
+
+                        <div class="article-header-image">
+                            <!-- Image injected via JS or CSS background -->
+                        </div>
+
+                        <div class="article-body">
+                            <div class="news-meta" id="article-date">09.01.2026</div>
+                            <h2 class="article-title" id="article-title">A NEW ERA BEGINS: METROSTATE 2026</h2>
+                            <p class="article-subtitle" id="article-subtitle">This is a defining moment.</p>
+
+                            <div class="article-text" id="article-content">
+                                <p>In 2025, we rolled out the biggest updates in the history of Metrostate and cemented
+                                    our spot as the undisputed kings of the sector. But in 2026? We're going even
+                                    BIGGER.</p>
+                                <p>Our founder spills all the tea and tells you about what we have in store for the next
+                                    year:</p>
+                            </div>
+
+                            <div class="article-features">
+                                <div class="feature-item">
+                                    <div class="feature-check">✓</div>
+                                    <span>A brand-new map</span>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-check">✓</div>
+                                    <span>Exciting new features you have been asking for</span>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-check">✓</div>
+                                    <span>Next-level immersion that will make you forget to touch grass</span>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-check">✓</div>
+                                    <span>The long-awaited GLOBAL LAUNCH</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB CONTENT: ACCOUNT -->
+            <div id="view-account" class="view-section hidden animate-fade-in">
+                <div class="account-container high-fidelity-account">
+                    <!-- PROFILE MODULE -->
+                    <div class="account-module-cyber">
+                        <div class="module-accent"></div>
+                        <div class="module-header-cyber">
+                            <div class="header-icon-cyber"><svg viewBox="0 0 24 24" width="20" height="20">
+                                    <path fill="currentColor"
+                                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                </svg></div>
+                            <h3>USER PROFILE</h3>
+                        </div>
+                        <div class="profile-layout-cyber">
+                            <div class="avatar-capsule">
+                                <div class="avatar-glitch">M</div>
+                            </div>
+                            <div class="profile-details-cyber">
+                                <div id="profile-username" class="username-display">OPERATIVE</div>
+                                <div id="profile-email" class="email-display">EMAIL@DOMAIN.COM</div>
+                                <div class="status-indicator">
+                                    <span class="label">STATUS_CONFIRMED</span>
+                                    <span class="value cyan-text">VERIFIED</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECURITY MODULE -->
+                    <div class="account-module-cyber">
+                        <div class="module-accent"></div>
+                        <div class="module-header-cyber">
+                            <div class="header-icon-cyber"><svg viewBox="0 0 24 24" width="20" height="20">
+                                    <path fill="currentColor"
+                                        d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
+                                </svg></div>
+                            <h3>CHANGE PASSWORD</h3>
+                        </div>
+                        <form id="password-change-form" class="cyber-form-integrated">
+                            <div class="input-field-cyber">
+                                <label>NEW PASSWORD</label>
+                                <input type="password" placeholder="••••••••" class="cyber-input-standard">
+                            </div>
+                            <button type="submit" class="btn-cyber-primary">SAVE CHANGES</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB CONTENT: STORE -->
+            <div id="view-store" class="view-section hidden animate-fade-in">
+                <div class="store-container">
+                    <div class="store-header">
+                        <h2>WEBSTORE</h2>
+                        <div class="header-line"></div>
+                    </div>
+
+                    <div class="store-grid">
+                        <!-- ITEM 1 -->
+                        <div class="store-module">
+                            <div class="module-tag">10% BONUS</div>
+                            <div class="module-main">
+                                <div class="module-image">
+                                    <!-- Add <img src="path/to/image.png"> here later -->
+                                </div>
+                                <div class="module-info">
+                                    <h3 class="item-name">88,000 CREDITS</h3>
+                                    <p class="item-desc">Premium operative currency</p>
+                                </div>
+                            </div>
+                            <div class="module-footer">
+                                <div class="price-section">
+                                    <span class="bonus-amount-badge">+20,000 BONUS</span>
+                                    <span class="item-price-val">$99.99</span>
+                                </div>
+                                <button class="store-module-btn">PURCHASE</button>
+                            </div>
+                        </div>
+
+                        <!-- ITEM 2 -->
+                        <div class="store-module featured">
+                            <div class="module-tag best">BEST VALUE</div>
+                            <div class="module-main">
+                                <div class="module-image">
+                                    <!-- Add <img src="path/to/image.png"> here later -->
+                                </div>
+                                <div class="module-info">
+                                    <h3 class="item-name">40,000 CREDITS</h3>
+                                    <p class="item-desc">Elite operative pack</p>
+                                </div>
+                            </div>
+                            <div class="module-footer">
+                                <div class="price-section">
+                                    <span class="bonus-amount-badge">+10,000 BONUS</span>
+                                    <span class="item-price-val">$49.99</span>
+                                </div>
+                                <button class="store-module-btn">PURCHASE</button>
+                            </div>
+                        </div>
+
+                        <!-- ITEM 3 -->
+                        <div class="store-module">
+                            <div class="module-main">
+                                <div class="module-image">
+                                    <!-- Add <img src="path/to/image.png"> here later -->
+                                </div>
+                                <div class="module-info">
+                                    <h3 class="item-name">20,000 CREDITS</h3>
+                                    <p class="item-desc">Advanced operative pack</p>
+                                </div>
+                            </div>
+                            <div class="module-footer">
+                                <div class="price-section">
+                                    <span class="bonus-amount-badge">+4,000 BONUS</span>
+                                    <span class="item-price-val">$24.99</span>
+                                </div>
+                                <button class="store-module-btn">PURCHASE</button>
+                            </div>
+                        </div>
+
+                        <!-- ITEM 4 -->
+                        <div class="store-module">
+                            <div class="module-main">
+                                <div class="module-image">
+                                    <!-- Add <img src="path/to/image.png"> here later -->
+                                </div>
+                                <div class="module-info">
+                                    <h3 class="item-name">10,000 CREDITS</h3>
+                                    <p class="item-desc">Standard operative pack</p>
+                                </div>
+                            </div>
+                            <div class="module-footer">
+                                <div class="price-section">
+                                    <span class="bonus-amount-badge">+1,000 BONUS</span>
+                                    <span class="item-price-val">$12.99</span>
+                                </div>
+                                <button class="store-module-btn">PURCHASE</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- UI STATE SCRIPTS -->
+    <script src="app.js"></script>
+</body>
+
+</html>

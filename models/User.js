@@ -56,10 +56,10 @@ const userSchema = new mongoose.Schema({
 });
 
 // Hash password before saving (only if password is provided)
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   // Only hash password if it exists and has been modified
   if (!this.isModified('password') || !this.password) return next();
-  
+
   try {
     const salt = await bcrypt.genSalt(parseInt(process.env.BCRYPT_ROUNDS) || 12);
     this.password = await bcrypt.hash(this.password, salt);
@@ -70,14 +70,14 @@ userSchema.pre('save', async function(next) {
 });
 
 // Method to compare password (only if password exists)
-userSchema.methods.comparePassword = async function(candidatePassword) {
+userSchema.methods.comparePassword = async function (candidatePassword) {
   // If no password is set, return false
   if (!this.password) return false;
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
 // Method to get public profile (without password)
-userSchema.methods.getPublicProfile = function() {
+userSchema.methods.getPublicProfile = function () {
   const userObject = this.toObject();
   delete userObject.password;
   delete userObject.otp;
@@ -86,20 +86,20 @@ userSchema.methods.getPublicProfile = function() {
 };
 
 // Method to set OTP
-userSchema.methods.setOTP = function(otp, expiryMinutes = 10) {
+userSchema.methods.setOTP = function (otp, expiryMinutes = 10) {
   this.otp = otp;
   this.otpExpiry = new Date(Date.now() + expiryMinutes * 60 * 1000);
 };
 
 // Method to verify OTP
-userSchema.methods.verifyOTP = function(enteredOtp) {
+userSchema.methods.verifyOTP = function (enteredOtp) {
   if (!this.otp || !this.otpExpiry) return false;
   if (this.otpExpiry < new Date()) return false; // OTP expired
   return this.otp === enteredOtp;
 };
 
 // Method to clear OTP after use
-userSchema.methods.clearOTP = function() {
+userSchema.methods.clearOTP = function () {
   this.otp = null;
   this.otpExpiry = null;
 };
